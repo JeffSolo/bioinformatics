@@ -1,61 +1,51 @@
 from datetime import datetime
-import bioinformatics as bio
-
-
-
-# submissions are expected to only have space separators
-def print_formatted_output(answer):
-    if isinstance(answer, list):
-        if isinstance(answer[0], str):
-            print(' '.join(answer))
-        else:
-            print(' '.join(str(i) for i in answer))
-    else:
-        print(answer)
-
-
-# sometimes multiple parameters are given in the header and footer, separated by a space
-def parse_parameters(parameter_string):
-    return parameter_string.split(' ')
+from bioinformatics.genome import Genome
+from bioinformatics.course_helper import parse_genome_file, parse_parameters, print_formatted_output, save_to_file
 
 # pattern count
-genome, _, parameter = bio.read_genome('./datasets/week_1/dataset_2_7.txt', has_footer=True)
-print_formatted_output(bio.pattern_count(genome, parameter))
+sequence, _, pattern = parse_genome_file('./datasets/week_1/dataset_2_7.txt', has_footer=True)
+genome = Genome(sequence)
+print_formatted_output(genome.pattern_count(pattern))
 
 # frequent words
-genome, _, parameter = bio.read_genome('./datasets/week_1/dataset_2_10.txt', has_footer=True)
-print_formatted_output(bio.most_frequent_words(genome, int(parameter)))
+sequence, _, k = parse_genome_file('./datasets/week_1/dataset_2_10.txt', has_footer=True)
+genome = Genome(sequence)
+print_formatted_output(genome.most_frequent_kmer(int(k)))
 
 # reverse complement
-genome, _, _ = bio.read_genome('./datasets/week_1/dataset_3_2.txt')
-print_formatted_output(bio.reverse_complement(genome))
+sequence, _, _ = parse_genome_file('./datasets/week_1/dataset_3_2.txt')
+genome = Genome(sequence)
+print_formatted_output(genome.reverse_complement())
 
 # pattern match
-genome, parameter, _ = bio.read_genome('./datasets/week_1/dataset_3_5.txt', has_header=True)
-print_formatted_output(bio.pattern_match(genome, parameter))
+sequence, pattern, _ = parse_genome_file('./datasets/week_1/dataset_3_5.txt', has_header=True)
+genome = Genome(sequence)
+print_formatted_output(genome.pattern_match_index(pattern))
 
 # clump finding
-genome, _, parameter = bio.read_genome('./datasets/week_1/dataset_4_5.txt', has_footer=True)
-params = parse_parameters(parameter)
-print_formatted_output(bio.find_clumps(genome, int(params[0]), int(params[1]), int(params[2])))
+sequence, _, parameters = parse_genome_file('./datasets/week_1/dataset_4_5.txt', has_footer=True)
+k, L, t = parse_parameters(parameters)
+genome = Genome(sequence)
+print_formatted_output(genome.find_clumps(int(k), int(L), int(t)))
 
 # computing frequencies
-genome, _, parameter = bio.read_genome('./datasets/week_1/dataset_2994_5.txt', has_footer=True)
-print_formatted_output(bio.compute_frequencies(genome, int(parameter)))
+sequence, _, k = parse_genome_file('./datasets/week_1/dataset_2994_5.txt', has_footer=True)
+genome = Genome(sequence)
+print_formatted_output(genome.compute_frequencies(int(k)))
 
 # pattern to number
-genome, _, _ = bio.read_genome('./datasets/week_1/dataset_3010_2.txt')
-print_formatted_output(bio.pattern_to_number(genome))
+sequence, _, _ = parse_genome_file('./datasets/week_1/dataset_3010_2.txt')
+print_formatted_output(Genome.pattern_to_number(sequence))
 
 # number to pattern
-number, _, parameter = bio.read_genome('./datasets/week_1/dataset_3010_5.txt', has_footer=True)
-print_formatted_output(bio.number_to_pattern(int(number), int(parameter)))
+number, _, l = parse_genome_file('./datasets/week_1/dataset_3010_5.txt', has_footer=True)
+print_formatted_output(Genome.number_to_pattern(int(number), int(l)))
 
 # clump finding for E. Coli
-with open('./datasets/E_coli.txt', 'r') as infile:
-    gen = infile.read()
+print(datetime.now())
+genome = Genome()
+genome.read_genome('./datasets/E_coli.txt')
+clumps = genome.find_clumps(9, 500, 3)
+print(datetime.now())
 
-print(datetime.now())
-with open('./output/e_coli_clumps.txt', 'w') as outfile:
-    outfile.write(str(bio.find_clumps(gen, 9, 500, 3)))
-print(datetime.now())
+save_to_file('./output/e_coli_clumps.txt', clumps)
