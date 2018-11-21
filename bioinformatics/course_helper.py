@@ -1,6 +1,6 @@
 from os.path import exists
 from typing import Tuple
-
+from errno import EEXIST
 
 def parse_genome_file(file_path: str, has_header=False, has_footer=False) -> Tuple[str, str, str]:
     """ Read in genome file, and keep header/footer separate if necessary.
@@ -53,8 +53,8 @@ def save_to_file(file_path: str, output: str, overwrite=False):
         Information we want to save in file
     overwrite : bool, default False
     """
-    if overwrite and exists(file_path):
-        raise IOError(f'File {file_path} already exists')
+    if not overwrite and exists(file_path):
+        raise IOError(EEXIST, f'File {file_path} already exists')
 
     with open(f'{file_path}', 'w') as outfile:
         outfile.write(output)

@@ -1,6 +1,7 @@
 from collections import Counter
 from itertools import product
 from typing import List
+from .distance import hamming_distance
 
 
 class Genome:
@@ -8,7 +9,7 @@ class Genome:
 
     Parameters
     ----------
-    sequence : str default None
+    sequence : str default ''
         Sequence of nucleotides, e.g. 'ACGTGACTAAGATCGGG'
 
     Attributes
@@ -36,7 +37,7 @@ class Genome:
         'T': 3
     }
 
-    def __init__(self, sequence: str = None):
+    def __init__(self, sequence: str = ''):
         self.sequence = sequence
 
     def read_genome(self, file_path: str, skip_header_rows=0, skip_footer_rows=0) -> str:
@@ -67,25 +68,6 @@ class Genome:
             self.sequence = ''.join(body)
             return self.sequence
 
-    def pattern_count(self, pattern: str) -> int:
-        """ Count number of times a pattern occurs in genome
-
-        Parameters
-        ----------
-        pattern : str
-            The pattern we want to count occurrences of
-
-        Returns
-        -------
-        int
-            Number of times pattern occurred
-        """
-        count = 0
-        for i in range(len(self.sequence)):
-            if self.sequence[i:i+len(pattern)] == pattern:
-                count += 1
-        return count
-
     def reverse_complement(self) -> str:
         """ Get the complement of a nucleotide sequence and reverse it
         e.g. ACTG -> CAGT
@@ -100,13 +82,38 @@ class Genome:
             complement += self.__dna_complement[nuc]
         return complement[::-1]
 
-    def pattern_match_index(self, pattern: str) -> List[int]:
+    def pattern_count(self, pattern: str, permissible_distance=0) -> int:
+        """ Count number of times a pattern occurs in genome
+
+        Parameters
+        ----------
+        pattern : str
+            The pattern we want to count occurrences of
+        permissible_distance : int, optional default 0
+             Maximum allowable hamming distance from *pattern* to count as a match
+
+        Returns
+        -------
+        int
+            Number of times pattern occurred
+        """
+        count = 0
+        for i in range(len(self.sequence) - len(pattern) + 1):
+            sub_sequence = self.sequence[i:i+len(pattern)]
+            if sub_sequence == pattern or hamming_distance(sub_sequence, pattern) <= permissible_distance:
+                count += 1
+
+        return count
+
+    def pattern_match_index(self, pattern: str, permissible_distance=0) -> List[int]:
         """ Get indices for start location of all matching patterns in genome
 
         Parameters
         ----------
         pattern : str
             The pattern whose indices we wish to find
+        permissible_distance : int, optional default 0
+            Maximum allowable hamming distance from *pattern* to count as a match
 
         Returns
         -------
@@ -114,12 +121,13 @@ class Genome:
             The index of starting position for all occurrences of *pattern* in *genome*
         """
         indices = []
-        for i in range(len(self.sequence)):
-            if self.sequence[i:i + len(pattern)] == pattern:
+        for i in range(len(self.sequence) - len(pattern) + 1):
+            sub_sequence = self.sequence[i:i + len(pattern)]
+            if sub_sequence == pattern or hamming_distance(sub_sequence, pattern) <= permissible_distance:
                 indices.append(i)
         return indices
 
-    # TODO return dictionary instead. Only reason it currently doesn't is because of course required output format
+    # TODO return dictionary instead. Only reason it currently doesn't is because of course's required output format
     def compute_frequencies(self, k: int) -> List[int]:
         """ Make frequency array for each possible pattern of length *k*, alphabetically indexed
 
@@ -164,7 +172,7 @@ class Genome:
 
         return frequency
 
-    def frequent_kmers(self, k: int, min_frequency: int) -> List[str]:
+    def frequent_kmers(self, k: int, min_frequency: int, permissible_distance=0) -> List[str]:
         """ Get all kmers in genome that appear a minimum number of times
 
         Parameters
@@ -173,6 +181,8 @@ class Genome:
             Length of kmers to get counts of
         min_frequency : int
             Minimum number of times a kmer needs to appear
+        permissible_distance : int, optional default 0
+            Maximum allowable hamming distance to be considered a matching kmer
 
         Returns
         -------
@@ -180,7 +190,6 @@ class Genome:
             List of kmers that occurred at least the min number of times
         """
         frequency = self.get_kmer_counts(self.sequence, k)
-
         return self.get_frequent_kmer(frequency, min_frequency)
 
     def most_frequent_kmer(self, k: int) -> List[str]:
@@ -240,6 +249,28 @@ class Genome:
 
         return list(set(frequent))
 
+    def minimum_skew(self) -> List[int]:
+        """ Find the indices with the minimum skew
+        When we encounter C decrease by 1, G increase by 1
+        Helps find origin of replication via mutations due to how DNA replicates
+
+        Returns
+        -------
+        list
+            indices where the skew is lowest
+        """
+        skew = 0
+        steps = [0]
+        for nucleotide in self.sequence:
+            if nucleotide == 'C':
+                skew -= 1
+            elif nucleotide == 'G':
+                skew += 1
+            steps.append(skew)
+
+        min_skew = min(steps)
+        return [i for i, val in enumerate(steps) if val == min_skew]
+
     @staticmethod
     def get_frequent_kmer(frequency: Counter, min_frequency: int) -> List[str]:
         """ Get all items in Counter that occur more than specified minimum
@@ -273,7 +304,7 @@ class Genome:
         ----------
         pattern: str
             Pattern we want to convert into number
-        nucleotide_map : dict, default = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
+        nucleotide_map : dict, optional default {'A': 0, 'C': 1, 'G': 2, 'T': 3}
             What nucleotide we want to map each number to, should be unique and < 4
 
         Returns
@@ -299,7 +330,7 @@ class Genome:
             The base 4 representation of a nucleotide sequence
         k : int
             The length of the nucleotide sequence
-        nucleotide_map : dict, default = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
+        nucleotide_map : dict, optional default {'A': 0, 'C': 1, 'G': 2, 'T': 3}
             What nucleotide we want to map each number to, should be unique and < 4
 
         Returns
