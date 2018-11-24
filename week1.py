@@ -31,7 +31,7 @@ print_formatted_output(genome.find_clumps(int(k), int(L), int(t)))
 # computing frequencies
 sequence, _, k = parse_genome_file('./datasets/week_1/dataset_2994_5.txt', has_footer=True)
 genome = Genome(sequence)
-print_formatted_output(genome.compute_frequencies(int(k)))
+print_formatted_output(genome.compute_all_frequencies_alphabetically(int(k)))
 
 # pattern to number
 sequence, _, _ = parse_genome_file('./datasets/week_1/dataset_3010_2.txt')

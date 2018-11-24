@@ -14,23 +14,23 @@ class Genome:
 
     Attributes
     ----------
-    __dna_complement (class attribute) : dict
+    dna_complement (class attribute) : dict
         Complement of each nucleobase, i.e. {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
-    __nucleotide_int_map (class attribute): dict
+    _nucleotide_int_map (class attribute): dict
         Map of nucleotides to ints in alphabetical order i.e. {'A': 0, 'C': 1, 'G': 2, 'T': 3}
 
     sequence : str
         Sequence of nucleotides that make up a genome, e.g. 'ACGTAATCGTTCGCCC'
     """
 
-    __dna_complement = {
+    dna_complement = {
         'A': 'T',
         'T': 'A',
         'C': 'G',
         'G': 'C'
     }
 
-    __nucleotide_int_map = {
+    _nucleotide_int_map = {
         'A': 0,
         'C': 1,
         'G': 2,
@@ -69,27 +69,42 @@ class Genome:
             return self.sequence
 
     def reverse_complement(self) -> str:
-        """ Get the complement of a nucleotide sequence and reverse it
+        """ Get the complement of our genome sequence and reverse it
         e.g. ACTG -> CAGT
 
         Returns
         -------
         str
-            The reverse complement of a nucleotide sequence
+            The reverse complement of genome sequence
         """
-        complement = ''
-        for nuc in self.sequence:
-            complement += self.__dna_complement[nuc]
-        return complement[::-1]
 
-    def pattern_count(self, pattern: str, permissible_distance=0) -> int:
+        return self._get_reverse_complement(self.sequence)
+
+    @classmethod
+    def _get_reverse_complement(cls, pattern: str) -> str:
+        """ Get reverse complement of a nucleotide sequence
+        e.g. ACTG -> CAGT
+
+        Parameters
+        ----------
+        pattern : str
+            Nucleotide sequence
+
+        Returns
+        -------
+        str
+            Reverse complement of *pattern*
+        """
+        return ''.join(reversed([cls.dna_complement[nuc] for nuc in pattern]))
+
+    def pattern_count(self, pattern: str, max_distance=0) -> int:
         """ Count number of times a pattern occurs in genome
 
         Parameters
         ----------
         pattern : str
             The pattern we want to count occurrences of
-        permissible_distance : int, optional default 0
+        max_distance : int, optional default 0
              Maximum allowable hamming distance from *pattern* to count as a match
 
         Returns
@@ -100,19 +115,19 @@ class Genome:
         count = 0
         for i in range(len(self.sequence) - len(pattern) + 1):
             sub_sequence = self.sequence[i:i+len(pattern)]
-            if sub_sequence == pattern or hamming_distance(sub_sequence, pattern) <= permissible_distance:
+            if sub_sequence == pattern or hamming_distance(sub_sequence, pattern) <= max_distance:
                 count += 1
 
         return count
 
-    def pattern_match_index(self, pattern: str, permissible_distance=0) -> List[int]:
+    def pattern_match_index(self, pattern: str, max_distance=0) -> List[int]:
         """ Get indices for start location of all matching patterns in genome
 
         Parameters
         ----------
         pattern : str
             The pattern whose indices we wish to find
-        permissible_distance : int, optional default 0
+        max_distance : int, optional default 0
             Maximum allowable hamming distance from *pattern* to count as a match
 
         Returns
@@ -123,34 +138,32 @@ class Genome:
         indices = []
         for i in range(len(self.sequence) - len(pattern) + 1):
             sub_sequence = self.sequence[i:i + len(pattern)]
-            if sub_sequence == pattern or hamming_distance(sub_sequence, pattern) <= permissible_distance:
+            if sub_sequence == pattern or hamming_distance(sub_sequence, pattern) <= max_distance:
                 indices.append(i)
         return indices
 
-    # TODO return dictionary instead. Only reason it currently doesn't is because of course's required output format
-    def compute_frequencies(self, k: int) -> List[int]:
+    def compute_all_frequencies_alphabetically(self, k: int, max_distance=0) -> List[int]:
         """ Make frequency array for each possible pattern of length *k*, alphabetically indexed
 
         Parameters
         ----------
         k : int
             length of kmers
+        max_distance : int, optional default 0
+            Maximum hamming distance from a pattern to count as a match
 
         Returns
         -------
         list
             Frequencies of each kmer alphabetically indexed.
-            Index 0 is frequency of AA, 1 is frequency of AC, 2 is frequency of AG...
+            Index 0 is frequency of AA, index 1 is frequency of AC, index 2 is frequency of AG...
         """
-        freq = Counter()
-        for i in range(len(self.sequence) - k + 1):
-            pattern = self.sequence[i: i + k]
-            freq.update([str(pattern)])
+        freq = self.get_kmer_counts(self.sequence, k, max_distance)
         order = [freq[''.join(list(i))] for i in product('ACGT', repeat=k)]
         return order
 
-    @staticmethod
-    def get_kmer_counts(sub_sequence: str, k: int) -> Counter:
+    @classmethod
+    def get_kmer_counts(cls, sub_sequence: str, k: int, count_reverse_complement=False, max_distance=0) -> Counter:
         """ Count how many times each kmer appears in sub_sequence
 
         Parameters
@@ -159,20 +172,36 @@ class Genome:
             Part or all of a genome sequence to get kmer counts for
         k : int
             Length of kmers to get counts of
+        count_reverse_complement : bool, optional default False
+            Whether we also want to add occurrences of the (approximate) reverse complement to our frequency
+        max_distance : int, optional default 0
+            Maximum hamming distance from a pattern to count as a match
 
         Returns
         -------
         Counter
             Counter of how many times each kmer occurred
         """
-        frequency = Counter()
-        for i in range(len(sub_sequence) - k + 1):
-            pattern = sub_sequence[i: i + k]
-            frequency.update([str(pattern)])
+        def get_frequencies(pattern):
+            freq = Counter()
+
+            for i in range(len(sub_sequence) - k + 1):
+                neighbors = cls.get_neighbors(pattern[i: i + k], max_distance)
+                for neighbor in neighbors:
+                    freq.update([str(neighbor)])
+
+            return freq
+
+        frequency = get_frequencies(sub_sequence)
+
+        if count_reverse_complement:
+            rc = cls._get_reverse_complement(sub_sequence)
+            rc_frequency = get_frequencies(rc)
+            frequency.update(rc_frequency)
 
         return frequency
 
-    def frequent_kmers(self, k: int, min_frequency: int, permissible_distance=0) -> List[str]:
+    def frequent_kmers(self, k: int, min_frequency=0, count_reverse_complement=False, max_distance=0) -> List[str]:
         """ Get all kmers in genome that appear a minimum number of times
 
         Parameters
@@ -181,7 +210,9 @@ class Genome:
             Length of kmers to get counts of
         min_frequency : int
             Minimum number of times a kmer needs to appear
-        permissible_distance : int, optional default 0
+        count_reverse_complement : bool, optional default False
+            Whether we also want to add occurrences of the (approximate) reverse complement to our frequency
+        max_distance : int, optional default 0
             Maximum allowable hamming distance to be considered a matching kmer
 
         Returns
@@ -189,23 +220,27 @@ class Genome:
         list
             List of kmers that occurred at least the min number of times
         """
-        frequency = self.get_kmer_counts(self.sequence, k)
+        frequency = self.get_kmer_counts(self.sequence, k, count_reverse_complement, max_distance)
         return self.get_frequent_kmer(frequency, min_frequency)
 
-    def most_frequent_kmer(self, k: int) -> List[str]:
+    def most_frequent_kmer(self, k: int, max_distance=0, count_reverse_complement=False) -> List[str]:
         """ Get only the most frequently occurring kmers in genome
 
         Parameters
         ----------
         k : int
             Length of kmers to get counts of
+        count_reverse_complement : bool, optional default False
+            Whether we also want to add occurrences of the (approximate) reverse complement to our frequency
+        max_distance : int, optional default 0
+            Maximum allowable hamming distance to be considered a matching kmer
 
         Returns
         -------
         list
             Most frequently occurring kmers
         """
-        frequency = self.get_kmer_counts(self.sequence, k)
+        frequency = self.get_kmer_counts(self.sequence, k, count_reverse_complement, max_distance)
         max_freq = frequency.most_common(1)[0][1]
 
         return self.get_frequent_kmer(frequency, max_freq)
@@ -297,6 +332,39 @@ class Genome:
         return frequent
 
     @classmethod
+    def get_neighbors(cls, pattern: str, max_distance: int) -> List[str]:
+        """ Get all nearby patterns within hamming distance *max_distance*
+
+        Parameters
+        ----------
+        pattern:
+            Pattern we want to get neighbors of
+
+        max_distance:
+            Maximum hamming distance of neighbors
+
+        Returns
+        -------
+        list
+            List of all patterns within specified distance
+        """
+        single_nucs = list(cls._nucleotide_int_map.keys())
+        if max_distance == 0:
+            return [pattern]
+        if len(pattern) == 1:
+            return single_nucs
+        neighborhood = []
+        suffix = pattern[1:]
+        suffix_neighbors = cls.get_neighbors(suffix, max_distance)
+        for neighbor in suffix_neighbors:
+            if hamming_distance(suffix, neighbor) < max_distance:  # less than since we'll add another nucleotide
+                for nuc in single_nucs:
+                    neighborhood.append(nuc + neighbor)
+            else:
+                neighborhood.append(pattern[0] + neighbor)
+        return neighborhood
+
+    @classmethod
     def pattern_to_number(cls, pattern: str, nucleotide_map: dict=None) -> int:
         """" Convert nucleotide pattern into base 4 representation where:
 
@@ -313,7 +381,7 @@ class Genome:
             Base 4 representation of genome
         """
         if nucleotide_map is None:
-            nucleotide_map = cls.__nucleotide_int_map
+            nucleotide_map = cls._nucleotide_int_map
 
         base = 4  # nucleotide map is base 4
         mapped = pattern
@@ -339,7 +407,7 @@ class Genome:
             nucleotide sequence
         """
         if nucleotide_map is None:
-            nucleotide_map = cls.__nucleotide_int_map
+            nucleotide_map = cls._nucleotide_int_map
 
         base = 4
         new_str = ''
