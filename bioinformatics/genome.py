@@ -307,7 +307,23 @@ class Genome:
         return [i for i, val in enumerate(steps) if val == min_skew]
 
     @classmethod
-    def motif_enumeration(cls, motifs: List[str], k: int, max_distance: int) -> List[str]:
+    def motif_enumeration(cls, motifs: List[str], k: int, max_distance=0) -> List[str]:
+        """ Find kmers (within given distance) that occur in all motifs
+
+        Parameters
+        ----------
+        motifs : list(str)
+            List of motifs we want to compare kmers in
+        k : int
+            Length of kmer
+        max_distance : int, optional default 0
+            Maximum hamming distance a kmer can differ in each motif
+
+        Returns
+        -------
+        List
+            kmers present in all motifs
+        """
         neighbors_list = []
         for motif in motifs:
             temp = []
@@ -321,6 +337,34 @@ class Genome:
             patterns = patterns & set(neighbors)
 
         return list(set(patterns))
+
+    @staticmethod
+    def distance_between_pattern_and_motifs(motifs: List[str], pattern: str) -> int:
+        """ Sum the hamming distance between a pattern and each given motif
+
+        Parameters
+        ----------
+        motifs : list
+            List of motifs
+        pattern : str
+            Pattern we want to check distance of in each motif
+
+        Returns
+        -------
+        int
+            Sum of hamming distances between pattern and each motif
+        """
+        k = len(pattern)
+        total_distance = 0
+
+        for motif in motifs:
+            distance = k
+            for i in range(len(motif) - k + 1):
+                kmer = motif[i: i+k]
+                if distance > hamming_distance(pattern, kmer):
+                    distance = hamming_distance(pattern, kmer)
+            total_distance += distance
+        return total_distance
 
     @staticmethod
     def get_frequent_kmer(frequency: Counter, min_frequency: int) -> List[str]:
