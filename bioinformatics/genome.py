@@ -1,5 +1,5 @@
 from collections import Counter
-from itertools import product
+from itertools import chain, product
 from typing import List
 from .distance import hamming_distance
 
@@ -305,6 +305,22 @@ class Genome:
 
         min_skew = min(steps)
         return [i for i, val in enumerate(steps) if val == min_skew]
+
+    @classmethod
+    def motif_enumeration(cls, motifs: List[str], k: int, max_distance: int) -> List[str]:
+        neighbors_list = []
+        for motif in motifs:
+            temp = []
+            for i in range(len(motif) - k + 1):
+                kmer = motif[i: i + k]
+                temp.append(set(cls.get_neighbors(kmer, max_distance)))
+            neighbors_list.append(list(chain.from_iterable(temp)))
+
+        patterns = set(neighbors_list[0])
+        for neighbors in neighbors_list[1:]:
+            patterns = patterns & set(neighbors)
+
+        return list(set(patterns))
 
     @staticmethod
     def get_frequent_kmer(frequency: Counter, min_frequency: int) -> List[str]:

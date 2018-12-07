@@ -2,7 +2,7 @@ from os.path import exists
 from typing import Tuple
 from errno import EEXIST
 
-def parse_genome_file(file_path: str, has_header=False, has_footer=False) -> Tuple[str, str, str]:
+def parse_genome_file(file_path: str, has_header=False, has_footer=False, join_character='') -> Tuple[str, str, str]:
     """ Read in genome file, and keep header/footer separate if necessary.
 
     Parameters
@@ -13,6 +13,8 @@ def parse_genome_file(file_path: str, has_header=False, has_footer=False) -> Tup
         Whether or not file has a header, assumes 1 line
     has_footer
         Whether or not file has a footer, assumes 1 line
+    join_character
+        What character to separate each line with when turning into a single string
     Returns
     -------
     tuple
@@ -28,7 +30,7 @@ def parse_genome_file(file_path: str, has_header=False, has_footer=False) -> Tup
         if has_footer:
             footer = body.pop(-1)
 
-        return ''.join(body), header, footer
+        return join_character.join(body), header, footer
 
 
 # submissions are expected to only have space separators
@@ -63,4 +65,3 @@ def save_to_file(file_path: str, output: str, overwrite=False):
 # sometimes multiple parameters are given in the header and footer, separated by a space
 def parse_parameters(parameter_string):
     return parameter_string.split(' ')
-
