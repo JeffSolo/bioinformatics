@@ -307,25 +307,25 @@ class Genome:
         return [i for i, val in enumerate(steps) if val == min_skew]
 
     @classmethod
-    def median_string(cls, motifs: List[str], k: int) -> List[str]:
-        """ Find kmers that minimizes the hamming distance amongst all motifs
+    def median_string(cls, dna_strands: List[str], k: int) -> List[str]:
+        """ Find kmers minimizing hamming distance amongst all dna strands
 
         Parameters
         ----------
-        motifs : list
-            motifs we want to find median string for
+        dna_strands : list
+            DNA strands
         k : int
-            length of kmer we want
+            length of kmers
 
         Returns
         -------
         list
-            kmers with shortest distance within motifs
+            kmers with minimum distance
         """
-        min_distance = k * len(motifs)
+        min_distance = k * len(dna_strands)
         median = []
         for pattern in [''.join(i) for i in product('ACGT', repeat=k)]:
-            distance = cls.distance_between_pattern_and_motifs(motifs, pattern)
+            distance = cls.distance_between_pattern_and_strands(dna_strands, pattern)
             if distance < min_distance:
                 min_distance = distance
                 median = [pattern]
@@ -334,28 +334,28 @@ class Genome:
         return median
 
     @classmethod
-    def motif_enumeration(cls, motifs: List[str], k: int, max_distance=0) -> List[str]:
-        """ Find kmers (within given distance) that occur in all motifs
+    def motif_enumeration(cls, dna_strands: List[str], k: int, max_distance=0) -> List[str]:
+        """ Brute force method for finding motifs that occur in dna strands
 
         Parameters
         ----------
-        motifs : list(str)
-            List of motifs we want to compare kmers in
+        dna_strands : list(str)
+            DNA strands
         k : int
             Length of kmer
         max_distance : int, optional default 0
-            Maximum hamming distance a kmer can differ in each motif
+            Maximum hamming allowable distance for a motif
 
         Returns
         -------
         List
-            kmers present in all motifs
+            All (k, d) motifs in dna strand
         """
         neighbors_list = []
-        for motif in motifs:
+        for strand in dna_strands:
             temp = []
-            for i in range(len(motif) - k + 1):
-                kmer = motif[i: i + k]
+            for i in range(len(strand) - k + 1):
+                kmer = strand[i: i + k]
                 temp.append(set(cls.get_neighbors(kmer, max_distance)))
             neighbors_list.append(list(chain.from_iterable(temp)))
 
@@ -366,28 +366,28 @@ class Genome:
         return list(set(patterns))
 
     @staticmethod
-    def distance_between_pattern_and_motifs(motifs: List[str], pattern: str) -> int:
-        """ Sum the hamming distance between a pattern and each given motif
+    def distance_between_pattern_and_strands(dna_strand: List[str], pattern: str) -> int:
+        """ Sum the hamming distance between a pattern and each dna strand
 
         Parameters
         ----------
-        motifs : list
-            List of motifs
+        dna_strand : list
+            List of dna strands
         pattern : str
-            Pattern we want to check distance of in each motif
+            Pattern to check distance against
 
         Returns
         -------
         int
-            Sum of hamming distances between pattern and each motif
+            Total distance between pattern and strands
         """
         k = len(pattern)
         total_distance = 0
 
-        for motif in motifs:
+        for strand in dna_strand:
             distance = k
-            for i in range(len(motif) - k + 1):
-                kmer = motif[i: i+k]
+            for i in range(len(strand) - k + 1):
+                kmer = strand[i: i+k]
                 if distance > hamming_distance(pattern, kmer):
                     distance = hamming_distance(pattern, kmer)
             total_distance += distance
