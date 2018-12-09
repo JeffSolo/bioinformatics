@@ -1,8 +1,8 @@
 from collections import Counter
-from itertools import chain, product
+from itertools import product
 from typing import List
-from .dna import DNA
 from .distance import hamming_distance
+from .dna import DNA
 
 
 class Genome(DNA):
@@ -151,7 +151,7 @@ class Genome(DNA):
             freq = Counter()
 
             for i in range(len(sub_sequence) - k + 1):
-                neighbors = cls.get_neighbors(pattern[i: i + k], max_distance)
+                neighbors = cls._get_neighbors(pattern[i: i + k], max_distance)
                 for neighbor in neighbors:
                     freq.update([str(neighbor)])
 
@@ -271,93 +271,6 @@ class Genome(DNA):
         min_skew = min(steps)
         return [i for i, val in enumerate(steps) if val == min_skew]
 
-    @classmethod
-    def median_string(cls, dna_strands: List[str], k: int) -> List[str]:
-        """ Find kmers minimizing hamming distance amongst all dna strands
-
-        Parameters
-        ----------
-        dna_strands : list
-            DNA strands
-        k : int
-            length of kmers
-
-        Returns
-        -------
-        list
-            kmers with minimum distance
-        """
-        min_distance = k * len(dna_strands)
-        median = []
-        for pattern in [''.join(i) for i in product('ACGT', repeat=k)]:
-            distance = cls.distance_between_pattern_and_strands(dna_strands, pattern)
-            if distance < min_distance:
-                min_distance = distance
-                median = [pattern]
-            elif min_distance == distance:
-                median.append(pattern)
-        return median
-
-    @classmethod
-    def motif_enumeration(cls, dna_strands: List[str], k: int, max_distance=0) -> List[str]:
-        """ Brute force method for finding motifs that occur in dna strands
-
-        Parameters
-        ----------
-        dna_strands : list(str)
-            DNA strands
-        k : int
-            Length of kmer
-        max_distance : int, optional default 0
-            Maximum hamming allowable distance for a motif
-
-        Returns
-        -------
-        List
-            All (k, d) motifs in dna strand
-        """
-        neighbors_list = []
-        for strand in dna_strands:
-            temp = []
-            for i in range(len(strand) - k + 1):
-                kmer = strand[i: i + k]
-                temp.append(set(cls.get_neighbors(kmer, max_distance)))
-            neighbors_list.append(list(chain.from_iterable(temp)))
-
-        patterns = set(neighbors_list[0])
-        for neighbors in neighbors_list[1:]:
-            patterns = patterns & set(neighbors)
-
-        return list(set(patterns))
-
-    @staticmethod
-    def distance_between_pattern_and_strands(dna_strand: List[str], pattern: str) -> int:
-        """ Sum the hamming distance between a pattern and each dna strand
-
-        Parameters
-        ----------
-        dna_strand : list
-            List of dna strands
-        pattern : str
-            Pattern to check distance against
-
-        Returns
-        -------
-        int
-            Total distance between pattern and strands
-        """
-        k = len(pattern)
-        total_distance = 0
-
-        for strand in dna_strand:
-            distance = k
-            for i in range(len(strand) - k + 1):
-                kmer = strand[i: i+k]
-                if distance > hamming_distance(pattern, kmer):
-                    distance = hamming_distance(pattern, kmer)
-            total_distance += distance
-        return total_distance
-
     @staticmethod
     def get_frequent_kmer(frequency: Counter, min_frequency: int) -> List[str]:
         """ Get all items in Counter that occur more than specified minimum
@@ -382,36 +295,3 @@ class Genome(DNA):
                 break
             frequent.append(counts[0])
         return frequent
-
-    @classmethod
-    def get_neighbors(cls, pattern: str, max_distance: int) -> List[str]:
-        """ Get all nearby patterns within hamming distance *max_distance*
-
-        Parameters
-        ----------
-        pattern:
-            Pattern we want to get neighbors of
-
-        max_distance:
-            Maximum hamming distance of neighbors
-
-        Returns
-        -------
-        list
-            List of all patterns within specified distance
-        """
-        single_nucs = list(cls.nucleobases.keys())
-        if max_distance == 0:
-            return [pattern]
-        if len(pattern) == 1:
-            return single_nucs
-        neighborhood = []
-        suffix = pattern[1:]
-        suffix_neighbors = cls.get_neighbors(suffix, max_distance)
-        for neighbor in suffix_neighbors:
-            if hamming_distance(suffix, neighbor) < max_distance:  # less than since we'll add another nucleotide
-                for nuc in single_nucs:
-                    neighborhood.append(nuc + neighbor)
-            else:
-                neighborhood.append(pattern[0] + neighbor)
-        return neighborhood

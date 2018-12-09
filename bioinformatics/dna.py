@@ -1,5 +1,9 @@
+from typing import List
+from .distance import get_neighborhood
+
+
 class DNA:
-    """ DNA information
+    """ Basic DNA information to be used in subclasses
 
     Attributes
     ----------
@@ -103,3 +107,22 @@ class DNA:
             Reverse complement of *pattern*
         """
         return ''.join(reversed([cls.dna_complement[nuc] for nuc in pattern]))
+
+    @classmethod
+    def _get_neighbors(cls, pattern: str, max_distance: int) -> List[str]:
+        """ Get all nearby patterns within hamming distance *max_distance*
+
+        Parameters
+        ----------
+        pattern:
+            Pattern we want to get neighbors of
+
+        max_distance:
+            Maximum hamming distance of neighbors
+
+        Returns
+        -------
+        list
+            List of all patterns within specified distance
+        """
+        return get_neighborhood(pattern, ''.join(cls.nucleobases.keys()), max_distance)

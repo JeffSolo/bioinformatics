@@ -1,5 +1,5 @@
 from datetime import datetime
-from bioinformatics.genome import Genome
+from bioinformatics.genome import DNA, Genome
 from bioinformatics.course_helper import parse_genome_file, parse_parameters, print_formatted_output, save_to_file
 
 # pattern count
@@ -35,11 +35,11 @@ print_formatted_output(genome.compute_all_frequencies_alphabetically(int(k)))
 
 # pattern to number
 sequence, _, _ = parse_genome_file('./datasets/week_1/dataset_3010_2.txt')
-print_formatted_output(Genome.pattern_to_number(sequence))
+print_formatted_output(DNA.pattern_to_number(sequence))
 
 # number to pattern
 number, _, l = parse_genome_file('./datasets/week_1/dataset_3010_5.txt', has_footer=True)
-print_formatted_output(Genome.number_to_pattern(int(number), int(l)))
+print_formatted_output(DNA.number_to_pattern(int(number), int(l)))
 
 # clump finding for E. Coli
 print(datetime.now())

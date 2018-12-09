@@ -1,6 +1,6 @@
-from bioinformatics.genome import Genome
-from bioinformatics.course_helper import parse_genome_file, parse_parameters, print_formatted_output, save_to_file
+from bioinformatics.course_helper import parse_genome_file, parse_parameters, print_formatted_output
 from bioinformatics.distance import hamming_distance
+from bioinformatics.genome import Genome
 
 
 # minimum skew
@@ -24,7 +24,7 @@ print_formatted_output(genome.pattern_count(pattern, int(max_dist)))
 
 # neighbors
 _, pattern, max_dist = parse_genome_file('./datasets/week_2/dataset_3014_4.txt', has_header=True, has_footer=True)
-print_formatted_output(Genome.get_neighbors(pattern, int(max_dist)))
+print_formatted_output(Genome._get_neighbors(pattern, int(max_dist)))
 
 # approximate most frequent kmers
 sequence, _, parameters = parse_genome_file('./datasets/week_2/dataset_9_7.txt', has_footer=True)
