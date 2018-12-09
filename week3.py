@@ -12,4 +12,7 @@ motif_str, pattern, _ = parse_genome_file('./datasets/week_3/dataset_5164_1.txt'
 motifs = parse_parameters(motif_str)
 print_formatted_output(Genome.distance_between_pattern_and_motifs(motifs, pattern))
 
-
+# median string
+motif_str, k, _ = parse_genome_file('./datasets/week_3/dataset_158_9.txt', has_header=True, join_character=' ')
+motifs = parse_parameters(motif_str)
+print_formatted_output(Genome.median_string(motifs, int(k)))

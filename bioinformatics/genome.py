@@ -307,6 +307,33 @@ class Genome:
         return [i for i, val in enumerate(steps) if val == min_skew]
 
     @classmethod
+    def median_string(cls, motifs: List[str], k: int) -> List[str]:
+        """ Find kmers that minimizes the hamming distance amongst all motifs
+
+        Parameters
+        ----------
+        motifs : list
+            motifs we want to find median string for
+        k : int
+            length of kmer we want
+
+        Returns
+        -------
+        list
+            kmers with shortest distance within motifs
+        """
+        min_distance = k * len(motifs)
+        median = []
+        for pattern in [''.join(i) for i in product('ACGT', repeat=k)]:
+            distance = cls.distance_between_pattern_and_motifs(motifs, pattern)
+            if distance < min_distance:
+                min_distance = distance
+                median = [pattern]
+            elif min_distance == distance:
+                median.append(pattern)
+        return median
+
+    @classmethod
     def motif_enumeration(cls, motifs: List[str], k: int, max_distance=0) -> List[str]:
         """ Find kmers (within given distance) that occur in all motifs
 
