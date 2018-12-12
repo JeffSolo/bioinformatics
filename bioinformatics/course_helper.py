@@ -2,6 +2,7 @@ from os.path import exists
 from typing import Tuple
 from errno import EEXIST
 
+
 def parse_genome_file(file_path: str, has_header=False, has_footer=False, join_character='') -> Tuple[str, str, str]:
     """ Read in genome file, and keep header/footer separate if necessary.
 
@@ -63,5 +64,5 @@ def save_to_file(file_path: str, output: str, overwrite=False):
 
 
 # sometimes multiple parameters are given in the header and footer, separated by a space
-def parse_parameters(parameter_string):
-    return parameter_string.split(' ')
+def parse_parameters(parameter_string, split_character=' '):
+    return parameter_string.split(split_character)

@@ -1,5 +1,5 @@
 from itertools import product, chain
-from typing import List, Union
+from typing import Dict, List, Union
 from .distance import hamming_distance
 from .dna import DNA
 
@@ -101,3 +101,37 @@ class Motifs(DNA):
                     distance = hamming_distance(pattern, kmer)
             total_distance += distance
         return total_distance
+
+    @staticmethod
+    def most_probable_kmer(sequence: str, probability_profile: Dict[str, List[float]], k: int) -> list:
+        """ Find the most probable kmers occurring in the sequence
+
+        Parameters
+        ----------
+        sequence :
+            String of nucleotides
+        probability_profile : dict
+            4xM probability matrix
+                keys are the nucleotides
+                values are list corresponds to probability of nucleotide occurring in it's index in kmer
+        k : int
+            length of kmer, should equal to number of columns in *probability_profile*
+
+        Returns
+        -------
+        list
+            Most probable kmers
+        """
+        most_probable = []
+        max_prob = 0
+        for i in range(len(sequence) - k + 1):
+            prob = 1
+            kmer = sequence[i: i + k]
+            for index, char in enumerate(kmer):
+                prob *= probability_profile[char][index]
+            if prob == max_prob:
+                most_probable.append(kmer)
+            elif prob > max_prob:
+                most_probable = [kmer]
+                max_prob = prob
+        return most_probable
