@@ -1,3 +1,4 @@
+from collections import Counter
 from itertools import product, chain
 from typing import Dict, List, Union
 from .distance import hamming_distance
@@ -96,14 +97,70 @@ class Motifs(DNA):
         for strand in self.strands:
             distance = k
             for i in range(len(strand) - k + 1):
-                kmer = strand[i: i+k]
+                kmer = strand[i: i + k]
                 if distance > hamming_distance(pattern, kmer):
                     distance = hamming_distance(pattern, kmer)
             total_distance += distance
         return total_distance
 
+    def distance_between_patterns_and_strands(self, patterns: Union[list, str]) -> int:
+        """ Sum the hamming distance between pattern(s) and each dna strand
+
+        Parameters
+        ----------
+        patterns : list or str
+            Patterns to check distance against,
+            If single pattern, compare to all strands, otherwise compare pattern to strand - must be same length
+
+        Returns
+        -------
+        int
+            Total distance between pattern and strands
+        """
+        if isinstance(patterns, str):
+            patterns = [patterns]
+        k = len(patterns[0])
+        total_distance = 0
+        index = 0
+        #('x', self.strands, patterns)
+        for strand in self.strands:
+            distance = k
+            for i in range(len(strand) - k + 1):
+                kmer = strand[i: i + k]
+                if distance > hamming_distance(patterns[index], kmer):
+                    distance = hamming_distance(patterns[index], kmer)
+            total_distance += distance
+            if len(patterns) > 0:
+                index += 1
+        return total_distance
+
     @staticmethod
-    def most_probable_kmer(sequence: str, probability_profile: Dict[str, List[float]], k: int) -> list:
+    def _most_probable_strand(probability_profile: Dict[str, List[float]]) -> str:
+        """ Return most probable string based on probability profile
+
+        Parameters
+        ----------
+        probability_profile : dict
+            Keys are the nucleotides
+            Values are lists of floats whose indices correspond to probability of appearing in that location
+
+        Returns
+        -------
+        Most probable string, if there are multiple, just return one
+
+        """
+        nuc = [i for i in probability_profile.keys()]
+        probs = list(zip(*probability_profile.values()))
+
+        most_probable = ''
+        for i in probs:
+            max_prob = max(i)
+            max_index = i.index(max_prob)
+            most_probable += nuc[max_index]
+        return most_probable
+
+    @staticmethod
+    def _most_probable_kmer(sequence: str, probability_profile: Dict[str, List[float]], k: int) -> list:
         """ Find the most probable kmers occurring in the sequence
 
         Parameters
@@ -135,3 +192,51 @@ class Motifs(DNA):
                 most_probable = [kmer]
                 max_prob = prob
         return most_probable
+
+    @staticmethod
+    def _make_profile(kmers: List[str]) -> dict:
+        """ Create a probability profile for kmers
+
+        Parameters
+        ----------
+        kmers: list
+            kmers we want to profile
+
+        Returns
+        -------
+        dict
+            Probability profile
+        """
+        profile = {'A': [], 'C': [], 'G': [], 'T': []}
+        transpose = [''.join(i) for i in zip(*kmers)]
+        for i in transpose:
+            for key in profile.keys():
+                profile[key].append(Counter(i)[key] / len(kmers))
+        return profile
+
+    def greedy_motif_search(self, k) -> List[str]:
+        """ Find motif in dna strands
+
+        Parameters
+        ----------
+        k: length of motif
+
+        Returns
+        -------
+        list
+            list of strings making up motif
+        """
+        best_motifs = [strand[:k] for strand in self.strands]
+        best_distance = len(self.strands) * k
+
+        num_kmers = len(self.strands[0]) - k + 1
+        for i in range(num_kmers):
+            motifs = [self.strands[0][i: i + k]]
+            for strand in self.strands[1:]:
+                profile = self._make_profile(motifs)
+                motifs.append(self._most_probable_kmer(strand, profile, k)[0])  # if tied, get first
+            distance = self.distance_between_pattern_and_strands(self._most_probable_strand(profile))
+            if distance < best_distance:
+                best_motifs = motifs
+                best_distance = distance
+        return best_motifs

@@ -21,4 +21,9 @@ params, sequence, _ = parse_genome_file('./datasets/week_3/dataset_159_3.txt', h
 params = parse_parameters(params, split_character='|')
 k = int(params.pop(0))
 profile = dict(zip('ACGT', [list(map(float, x.split(' '))) for x in params]))
-print_formatted_output(Motifs('').most_probable_kmer(sequence, profile, k))
+print_formatted_output(Motifs([])._most_probable_kmer(sequence, profile, k))
+
+dna, params, _ = parse_genome_file('./datasets/week_3/dataset_159_5.txt', has_header=True, join_character=' ')
+k, _ = parse_parameters(params)
+print(dna)
+print_formatted_output(Motifs(dna).greedy_motif_search(int(k)))
