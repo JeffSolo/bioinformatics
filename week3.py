@@ -27,3 +27,7 @@ dna, params, _ = parse_genome_file('./datasets/week_3/dataset_159_5.txt', has_he
 k, _ = parse_parameters(params)
 print(dna)
 print_formatted_output(Motifs(dna).greedy_motif_search(int(k)))
+
+dna, params, _ = parse_genome_file('./datasets/week_3/dataset_160_9.txt', has_header=True, join_character=' ')
+k, _ = parse_parameters(params)
+print_formatted_output(Motifs(dna).greedy_motif_search(int(k), use_pseudocount=True))

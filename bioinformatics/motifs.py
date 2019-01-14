@@ -194,13 +194,15 @@ class Motifs(DNA):
         return most_probable
 
     @staticmethod
-    def _make_profile(kmers: List[str]) -> dict:
+    def _make_profile(kmers: List[str], pseudocount=False) -> dict:
         """ Create a probability profile for kmers
 
         Parameters
         ----------
-        kmers: list
+        kmers : list
             kmers we want to profile
+        pseudocount : bool
+            Whether we want to increment all profile counts by 1 (to avoid some probabilities being 0)
 
         Returns
         -------
@@ -211,15 +213,20 @@ class Motifs(DNA):
         transpose = [''.join(i) for i in zip(*kmers)]
         for i in transpose:
             for key in profile.keys():
-                profile[key].append(Counter(i)[key] / len(kmers))
+                if pseudocount:
+                    profile[key].append(Counter(i+'ACGT')[key] / (len(kmers) + 4))
+                else:
+                    profile[key].append(Counter(i)[key] / len(kmers))
         return profile
 
-    def greedy_motif_search(self, k) -> List[str]:
-        """ Find motif in dna strands
+    def greedy_motif_search(self, k, use_pseudocount=False) -> List[str]:
+        """ Find motif in dna strands. WARNING: not well defined which get returned if multiple are equally probable
 
         Parameters
         ----------
-        k: length of motif
+        k : length of motif
+        use_pseudocount : bool
+            Whether we want to increment all profile counts by 1 (to avoid some probabilities being 0)
 
         Returns
         -------
@@ -228,12 +235,13 @@ class Motifs(DNA):
         """
         best_motifs = [strand[:k] for strand in self.strands]
         best_distance = len(self.strands) * k
-
+        profile = {}
         num_kmers = len(self.strands[0]) - k + 1
+
         for i in range(num_kmers):
             motifs = [self.strands[0][i: i + k]]
             for strand in self.strands[1:]:
-                profile = self._make_profile(motifs)
+                profile = self._make_profile(motifs, pseudocount=use_pseudocount)
                 motifs.append(self._most_probable_kmer(strand, profile, k)[0])  # if tied, get first
             distance = self.distance_between_pattern_and_strands(self._most_probable_strand(profile))
             if distance < best_distance:
