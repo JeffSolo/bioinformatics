@@ -1,5 +1,6 @@
 from collections import Counter
 from itertools import product, chain
+from random import sample
 from typing import Dict, List, Union
 from .distance import hamming_distance
 from .dna import DNA
@@ -19,10 +20,11 @@ class Motifs(DNA):
     Attributes
     ----------
     strands : list
-        All given DNA strands
+        All given DNA strands, should be of the same length
     """
 
     def __init__(self, dna_strands: Union[List[str], str], separator=' '):
+        # TODO check if strands are the same length
         self.strands = dna_strands.split(separator) if isinstance(dna_strands, str) else dna_strands
 
     def median_string(self, k: int) -> List[str]:
@@ -224,7 +226,8 @@ class Motifs(DNA):
 
         Parameters
         ----------
-        k : length of motif
+        k : int
+            length of motif
         use_pseudocount : bool
             Whether we want to increment all profile counts by 1 (to avoid some probabilities being 0)
 
@@ -236,7 +239,7 @@ class Motifs(DNA):
         best_motifs = [strand[:k] for strand in self.strands]
         best_distance = len(self.strands) * k
         profile = {}
-        num_kmers = len(self.strands[0]) - k + 1
+        num_kmers = len(self.strands[0]) - k + 1 # assume all strands are the same length
 
         for i in range(num_kmers):
             motifs = [self.strands[0][i: i + k]]
@@ -248,3 +251,59 @@ class Motifs(DNA):
                 best_motifs = motifs
                 best_distance = distance
         return best_motifs
+
+    def randomized_motif_search(self, k: int, iterations=1000):
+        """ Randomly select kmers from strands and
+
+        Parameters
+        ----------
+        k : int
+            length of motif
+        iterations : int optional default 1000
+            number of times to run algorithm
+
+        Returns
+        -------
+        list
+            list of strings making up best motif
+        """
+        max_distance = len(self.strands) * k
+        num_kmers = len(self.strands[0]) - k + 1  # assume all strands are the same length
+        best_overall_motifs = []
+        best_overall_distance = max_distance
+
+        for _ in range(iterations):
+            kmer_starts = sample(range(num_kmers), len(self.strands))
+            best_iter_motifs = [strand[kmer_starts[i]: kmer_starts[i] + k] for i, strand in enumerate(self.strands)]
+            best_iter_distance = max_distance + 1
+            motifs = best_iter_motifs
+            distance = max_distance
+            profile = self._make_profile(motifs, pseudocount=True)
+
+            while distance < best_iter_distance:
+                best_iter_distance = distance
+                best_iter_motifs = motifs
+
+                # use first most probable kmer encountered
+                motifs = [self._most_probable_kmer(strand, profile, k)[0] for strand in self.strands]
+                profile = self._make_profile(motifs, pseudocount=True)
+
+                distance = hamming_distance(motifs, self._most_probable_strand(profile))
+
+            if best_iter_distance < best_overall_distance:
+                best_overall_distance = best_iter_distance
+                best_overall_motifs = best_iter_motifs
+
+        return best_overall_motifs
+
+
+   # RandomizedMotifSearch(Dna, k, t)
+   #      randomly select k-mers Motifs = (Motif1, …, Motift) in each string from Dna
+   #      BestMotifs ← Motifs
+   #      while forever
+   #          Profile ← Profile(Motifs)
+   #          Motifs ← Motifs(Profile, Dna)
+   #          if Score(Motifs) < Score(BestMotifs)
+   #              BestMotifs ← Motifs
+   #          else
+   #              return BestMotifs

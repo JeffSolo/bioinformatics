@@ -35,12 +35,12 @@ def parse_genome_file(file_path: str, has_header=False, has_footer=False, join_c
 
 
 # submissions are expected to only have space separators
-def print_formatted_output(answer):
+def print_formatted_output(answer, joiner=' '):
     if isinstance(answer, list):
         if isinstance(answer[0], str):
-            print(' '.join(answer))
+            print(joiner.join(answer))
         else:
-            print(' '.join(str(i) for i in answer))
+            print(joiner.join(str(i) for i in answer))
     else:
         print(answer)
 

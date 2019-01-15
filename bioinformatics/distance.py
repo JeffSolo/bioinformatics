@@ -1,27 +1,31 @@
-from typing import List
+from typing import List, Union
 
 
-def hamming_distance(p: str, q: str) -> int:
+def hamming_distance(p: Union[List[str], str], q: str) -> int:
     """ Compute hamming distance between two strings
 
     Parameters
     ----------
-    p : str
-        first string to be compared
+    p : str or list
+        string or list to be compared
     q : str
-        second string to be compared
+        string to be compared against
 
     Returns
     -------
     int
         Distance between the strings
     """
-    if len(p) != len(q):
-        raise ValueError("Hamming Distance requires strings to be of equal length")
     distance = 0
+    if isinstance(p, str):
+        p = [p]
+
     for i in range(len(p)):
-        if p[i] != q[i]:
-            distance += 1
+        if len(p[i]) != len(q):
+            raise ValueError("Hamming Distance requires strings to be of equal length")
+        for index, letter in enumerate(p[i]):
+            if letter != q[index]:
+                distance += 1
 
     return distance
 
