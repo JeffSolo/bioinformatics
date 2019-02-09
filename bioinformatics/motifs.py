@@ -1,7 +1,10 @@
 from collections import Counter
 from itertools import product, chain
-from random import sample
+from random import randint, sample
 from typing import Dict, List, Union
+
+from numpy.random import choice
+
 from .distance import hamming_distance
 from .dna import DNA
 
@@ -162,6 +165,35 @@ class Motifs(DNA):
         return most_probable
 
     @staticmethod
+    def _build_kmer_probabilities(sequence: str, probability_profile: Dict[str, List[float]], k: int) -> list:
+        """" Calculate probabilities for each kmer in a sequence based on it's probability profile
+
+        Parameters
+        ----------
+        sequence :
+            String of nucleotides
+        probability_profile : dict
+            4xM probability matrix
+                keys are the nucleotides
+                values are list corresponds to probability of nucleotide occurring in it's index in kmer
+        k : int
+            length of kmer, should equal to number of columns in *probability_profile*
+
+        Returns
+        -------
+        list
+            List of probabilities - index of probability corresponds to start index of kmer
+        """
+        probabilities = []
+        for i in range(len(sequence) - k + 1):
+            kmer = sequence[i: i + k]
+            prob = 1
+            for index, char in enumerate(kmer):
+                prob *= probability_profile[char][index]
+            probabilities.append(prob)
+        return probabilities
+
+    @staticmethod
     def _most_probable_kmer(sequence: str, probability_profile: Dict[str, List[float]], k: int) -> list:
         """ Find the most probable kmers occurring in the sequence
 
@@ -253,7 +285,7 @@ class Motifs(DNA):
         return best_motifs
 
     def randomized_motif_search(self, k: int, iterations=1000):
-        """ Randomly select kmers from strands and
+        """ Randomly select kmers from each strand, create profile, and calculate the best score over many iterations
 
         Parameters
         ----------
@@ -268,12 +300,12 @@ class Motifs(DNA):
             list of strings making up best motif
         """
         max_distance = len(self.strands) * k
-        num_kmers = len(self.strands[0]) - k + 1  # assume all strands are the same length
+        num_possible_kmers = len(self.strands[0]) - k + 1  # assume all strands are the same length, TODO fix or check
         best_overall_motifs = []
         best_overall_distance = max_distance
 
         for _ in range(iterations):
-            kmer_starts = sample(range(num_kmers), len(self.strands))
+            kmer_starts = sample(range(num_possible_kmers), len(self.strands))
             best_iter_motifs = [strand[kmer_starts[i]: kmer_starts[i] + k] for i, strand in enumerate(self.strands)]
             best_iter_distance = max_distance + 1
             motifs = best_iter_motifs
@@ -296,14 +328,62 @@ class Motifs(DNA):
 
         return best_overall_motifs
 
+    #TODO consider refactor - too much duplicate code from randomized_motif_search
+    def gibbs_sampler(self, k: int, restarts=20, iterations=1000):
+        """ Randomly select kmers from each strand, create profile, and calculate the best score,
+         only changing 1 kmer between iterations
 
-   # RandomizedMotifSearch(Dna, k, t)
-   #      randomly select k-mers Motifs = (Motif1, …, Motift) in each string from Dna
-   #      BestMotifs ← Motifs
-   #      while forever
-   #          Profile ← Profile(Motifs)
-   #          Motifs ← Motifs(Profile, Dna)
-   #          if Score(Motifs) < Score(BestMotifs)
-   #              BestMotifs ← Motifs
-   #          else
-   #              return BestMotifs
+        Parameters
+        ----------
+        k : int
+            length of motif
+        restarts : int optional default 20
+            number of times we want to try  with different initial random kmers
+        iterations : int optional default 1000
+            number of times to run algorithm for each random set of kmers
+
+
+        Returns
+        -------
+        list
+            list of strings making up best motif
+        """
+        num_strands = len(self.strands)
+        max_distance = num_strands * k
+        num_possible_kmers = len(self.strands[0]) - k + 1  # assume all strands are the same length, TODO fix or check
+        best_overall_motifs = []
+        best_overall_distance = max_distance
+
+        for _ in range(restarts):
+            kmer_starts = sample(range(num_possible_kmers), num_strands)
+
+            best_iter_motifs = [strand[kmer_starts[i]: kmer_starts[i] + k] for i, strand in enumerate(self.strands)]
+            best_iter_distance = max_distance + 1
+            motifs = best_iter_motifs
+
+            for _ in range(iterations):
+                exclude_index = randint(0, num_strands - 1)
+                motifs.pop(exclude_index)
+                deleted_strand = self.strands[exclude_index]
+                profile = self._make_profile(motifs, pseudocount=True)
+                unweighted_probs = self._build_kmer_probabilities(deleted_strand, profile, k)
+                total_prob = sum(unweighted_probs)
+                probs = [i / total_prob for i in unweighted_probs]
+
+                random_index = choice(range(num_possible_kmers), p=probs)
+
+                new_random_kmer = deleted_strand[random_index: random_index + k]
+
+                motifs.insert(exclude_index, new_random_kmer)
+
+                distance = hamming_distance(motifs, self._most_probable_strand(profile))
+
+                if distance < best_iter_distance:
+                    best_iter_distance = distance
+                    best_iter_motifs = motifs
+
+            if best_iter_distance < best_overall_distance:
+                best_overall_distance = best_iter_distance
+                best_overall_motifs = best_iter_motifs
+
+        return best_overall_motifs
