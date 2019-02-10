@@ -1,8 +1,4 @@
 # bioinformatics
-Code for UCSD Bioninformatics (I) on Coursera and corresponding stepik content
+Programming challenges code for UCSD Bioinformatics series on Coursera.
 
-[Coursera](https://www.coursera.org/learn/dna-analysis/)
-
-
-Since this is for educational purposes, there may be times when I rewrite functions that already exist in other 
-packages, e.g. Hamming Distance. 
+[Coursera: Bioinformatics](https://www.coursera.org/learn/dna-analysis/)
