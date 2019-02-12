@@ -3,3 +3,4 @@ output/
 .idea/
 scratch*
 __pycache__/
+*.js
