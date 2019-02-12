@@ -1,6 +1,6 @@
 from datetime import datetime
-from bioinformatics.genome import DNA, Genome
-from bioinformatics.course_helper import parse_genome_file, parse_parameters, print_formatted_output, save_to_file
+from python.bioinformatics import DNA, Genome
+from python.bioinformatics import parse_genome_file, parse_parameters, print_formatted_output, save_to_file
 
 # pattern count
 sequence, _, pattern = parse_genome_file('./datasets/week_1/dataset_2_7.txt', has_footer=True)

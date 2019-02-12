@@ -216,13 +216,13 @@ class Genome(DNA):
             Length of each kmer to check
         L : int
             Length of a clump to search in
-        t : int
+        tslint.json : int
             Minimum number of times a kmer must appear to be considered
 
         Returns
         -------
         list
-            All kmers that appear at least *t* times in a clump of size *L*
+            All kmers that appear at least *tslint.json* times in a clump of size *L*
         """
 
         # initialize counter with first clump

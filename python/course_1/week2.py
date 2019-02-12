@@ -1,6 +1,6 @@
-from bioinformatics.course_helper import parse_genome_file, parse_parameters, print_formatted_output
-from bioinformatics.distance import hamming_distance
-from bioinformatics.genome import Genome
+from python.bioinformatics import parse_genome_file, parse_parameters, print_formatted_output
+from python.bioinformatics.distance import hamming_distance
+from python.bioinformatics import Genome
 
 
 # minimum skew

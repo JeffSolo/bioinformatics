@@ -1,5 +1,5 @@
-from bioinformatics.motifs import Motifs
-from bioinformatics.course_helper import parse_genome_file, parse_parameters, print_formatted_output, save_to_file
+from python.bioinformatics import Motifs
+from python.bioinformatics import parse_genome_file, parse_parameters, print_formatted_output
 
 # motif enumeration
 dna, parameters, _ = parse_genome_file('./datasets/week_3/dataset_156_8.txt', has_header=True, join_character=' ')
