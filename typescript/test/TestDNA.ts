@@ -3,13 +3,13 @@ import DNA from '../bioinformatics/DNA';
 
 describe('DNA class', () => {
     it('should get DNA complement', () => {
-        const dna: DNA = new DNA('ACGT');
-        assert.equal(dna.complement(), 'TGCA');
+        const dna = new DNA('ACGT');
+        assert.strictEqual(dna.complement(), 'TGCA');
     });
 
     it('should get DNA reverse complement', () => {
-       const dna: DNA = new DNA('ACGTTCGA');
-       assert.equal(dna.reverse_complement(), 'TCGAACGT');
+       const dna = new DNA('ACGTTCGA');
+       assert.strictEqual(dna.reverse_complement(), 'TCGAACGT');
     });
 
 });

@@ -12,12 +12,7 @@ import * as fs from 'fs';
  *
  * @returns object consisting of {body, header, footer}
  */
-export function parseDataFile(
-    filePath: string,
-    hasHeader: boolean = false,
-    hasFooter: boolean = false,
-    joinCharacter: string = ''
-): object {
+export function parseDataFile(filePath: string, hasHeader = false, hasFooter = false, joinCharacter = ''): object {
   // tslint:disable-next-line:non-literal-fs-path
   const fileContent: string[] = fs.readFileSync(filePath).toString().split('\n');
   const header: string | undefined = hasHeader ? fileContent.shift() : undefined;
@@ -34,7 +29,7 @@ export function parseDataFile(
  * @parameter joiner - Spacing character for printing array items
  */
 // tslint:disable-next-line:no-any
-export function printFormattedOutput(output: any[] | any, joiner: string = ' '): void {
+export function printFormattedOutput(output: any[] | any, joiner = ' '): void {
   if (typeof(output) === 'object') {
     console.log(output.join(joiner));
   } else {
@@ -50,6 +45,6 @@ export function printFormattedOutput(output: any[] | any, joiner: string = ' '):
  *
  * @returns String array of parameters
  */
-export function parseParameters(parametersString: string, splitCharacter: string = ' '): string[] {
+export function parseParameters(parametersString: string, splitCharacter = ' '): string[] {
   return parametersString.split(splitCharacter);
 }

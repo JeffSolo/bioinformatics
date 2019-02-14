@@ -13,8 +13,8 @@ export default class DNA {
     }
 
     public complement(): string {
-        let comp: string = '';
-        const array: string[] = this.sequence.split('');
+        let comp = '';
+        const array = this.sequence.split('');
 
         [...array].forEach((c: string) => comp += DNA.complement[c]);
 
