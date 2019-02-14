@@ -8,18 +8,16 @@ export function parseDataFile(
 ): object {
   // tslint:disable-next-line:non-literal-fs-path
   const fileContent: string[] = fs.readFileSync(filePath).toString().split('\n');
-  // TODO ensure that length of array is between > 0 and <= 3
+  const header: string | undefined = hasHeader ? fileContent.shift() : undefined;
   const footer: string | undefined = hasFooter ? fileContent.pop() : undefined;
-  const body: string | undefined = fileContent.pop();
-  const header: string | undefined = hasHeader ? fileContent.pop() : undefined;
-  // TODO could check that array is empty
+  const body: string = fileContent.join(joinCharacter);
 
   return {body, header, footer};
 }
 
-// Since we're just printing output, let it be an array of anything, or a string, or a number
+// We're just printing output, so don't care about type here
 // tslint:disable-next-line:no-any
-export function printFormattedOutput(answer: any[] | string | number, joiner: string = ' '): void {
+export function printFormattedOutput(answer: any[] | any, joiner: string = ' '): void {
   if (typeof(answer) === 'object') {
     console.log(answer.join(joiner));
   } else {
