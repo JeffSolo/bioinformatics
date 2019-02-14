@@ -1,5 +1,5 @@
 export default class DNA {
-    private static complement: object = {
+    private static complement: {[property: string]: string} = {
         A: 'T',
         T: 'A',
         C: 'G',
