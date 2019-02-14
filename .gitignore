@@ -4,3 +4,4 @@ output/
 scratch*
 __pycache__/
 *.js
+node_modules/
