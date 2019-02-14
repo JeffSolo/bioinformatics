@@ -1,5 +1,17 @@
 import * as fs from 'fs';
 
+/**
+ * Parses data file into body, header, and footer.
+ *
+ * @remarks Header and footer can only be one line.
+ *
+ * @parameter filePath - File we want to read data from
+ * @parameter asHeader - Whether or not file has a header
+ * @parameter hasFooter - Whether or not file has a footer, assumes 1 line
+ * @parameter join_character - What character to separate each body line with when turning into a single string
+ *
+ * @returns object consisting of {body, header, footer}
+ */
 export function parseDataFile(
     filePath: string,
     hasHeader: boolean = false,
@@ -15,16 +27,29 @@ export function parseDataFile(
   return {body, header, footer};
 }
 
-// We're just printing output, so don't care about type here
+/**
+ * Format and print output to console.
+ *
+ * @parameter output - Info we want to print
+ * @parameter joiner - Spacing character for printing array items
+ */
 // tslint:disable-next-line:no-any
-export function printFormattedOutput(answer: any[] | any, joiner: string = ' '): void {
-  if (typeof(answer) === 'object') {
-    console.log(answer.join(joiner));
+export function printFormattedOutput(output: any[] | any, joiner: string = ' '): void {
+  if (typeof(output) === 'object') {
+    console.log(output.join(joiner));
   } else {
-    console.log(answer);
+    console.log(output);
   }
 }
 
+/**
+ * Parse a string of parameters into array.
+ *
+ * @parameter parameterString - Info we want to print
+ * @parameter splitCharacter - Spacing character for printing array items
+ *
+ * @returns String array of parameters
+ */
 export function parseParameters(parametersString: string, splitCharacter: string = ' '): string[] {
   return parametersString.split(splitCharacter);
 }
