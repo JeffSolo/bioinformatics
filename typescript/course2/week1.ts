@@ -1,4 +1,4 @@
-import DNA from '../bioinformatics/DNA';
+// import DNA from '../bioinformatics/DNA';
+import {stringComposition} from '../bioinformatics/Reconstructor';
 
-const x = new DNA('AGTC'); // tslint:disable-line: typedef
-console.log(x.reverse_complement());
+console.log(stringComposition('ABCDE', 3));

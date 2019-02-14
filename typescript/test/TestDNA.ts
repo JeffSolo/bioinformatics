@@ -2,7 +2,7 @@ import assert from 'assert';
 import DNA from '../bioinformatics/DNA';
 
 describe('DNA class', () => {
-    it('should get DNA complement', () => {
+    it('should decompose strand', () => {
         const dna = new DNA('ACGT');
         assert.strictEqual(dna.complement(), 'TGCA');
     });
