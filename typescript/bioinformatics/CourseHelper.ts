@@ -1,5 +1,11 @@
 import * as fs from 'fs';
 
+export interface IDataFile {
+  body: string;
+  footer: string | undefined;
+  header: string | undefined;
+}
+
 /**
  * Parses data file into body, header, and footer.
  *
@@ -12,7 +18,7 @@ import * as fs from 'fs';
  *
  * @returns object consisting of {body, header, footer}
  */
-export function parseDataFile(filePath: string, hasHeader = false, hasFooter = false, joinCharacter = ''): object {
+export function parseDataFile(filePath: string, {joinCharacter = '', hasHeader = false, hasFooter = false}): IDataFile {
   // tslint:disable-next-line:non-literal-fs-path
   const fileContent: string[] = fs.readFileSync(filePath).toString().split('\n');
   const header: string | undefined = hasHeader ? fileContent.shift() : undefined;
@@ -29,11 +35,11 @@ export function parseDataFile(filePath: string, hasHeader = false, hasFooter = f
  * @parameter joiner - Spacing character for printing array items
  */
 // tslint:disable-next-line:no-any
-export function printFormattedOutput(output: any[] | any, joiner = ' '): void {
+export function printFormattedOutput(output: any, joiner = ' '): void {
   if (typeof(output) === 'object') {
-    console.log(output.join(joiner));
+  console.log(output.join(joiner));
   } else {
-    console.log(output);
+  console.log(output);
   }
 }
 
@@ -47,4 +53,17 @@ export function printFormattedOutput(output: any[] | any, joiner = ' '): void {
  */
 export function parseParameters(parametersString: string, splitCharacter = ' '): string[] {
   return parametersString.split(splitCharacter);
+}
+
+// tslint:disable-next-line:no-any
+export function saveToFile(filePath: string, output: any, overwrite = false): void {
+  // tslint:disable-next-line:non-literal-fs-path
+  const stream = fs.createWriteStream(filePath, {flags: overwrite ? 'w' : 'wx'});
+  stream.on('error', (err) => { if (err) {throw err; }});
+  if (typeof(output) === 'object') {
+    output.forEach((item: any) => stream.write(`${item}\n`)); // tslint:disable-line:no-any
+  } else {
+    stream.write(output);
+  }
+  stream.end();
 }
