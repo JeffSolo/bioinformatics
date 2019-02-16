@@ -1,5 +1,5 @@
 .DS_STORE
-output/
+output/*
 .idea/
 scratch*
 __pycache__/
