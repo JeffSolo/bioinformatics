@@ -19,7 +19,6 @@ export interface IDataFile {
  * @returns object consisting of {body, header, footer}
  */
 export function parseDataFile(filePath: string, {joinCharacter = '', hasHeader = false, hasFooter = false}): IDataFile {
-  // tslint:disable-next-line:non-literal-fs-path
   const fileContent: string[] = fs.readFileSync(filePath).toString().split('\n');
   const header: string | undefined = hasHeader ? fileContent.shift() : undefined;
   const footer: string | undefined = hasFooter ? fileContent.pop() : undefined;
@@ -57,7 +56,6 @@ export function parseParameters(parametersString: string, splitCharacter = ' '):
 
 // tslint:disable-next-line:no-any
 export function saveToFile(filePath: string, output: any, overwrite = false): void {
-  // tslint:disable-next-line:non-literal-fs-path
   const stream = fs.createWriteStream(filePath, {flags: overwrite ? 'w' : 'wx'});
   stream.on('error', (err) => { if (err) {throw err; }});
   if (typeof(output) === 'object') {
@@ -67,3 +65,4 @@ export function saveToFile(filePath: string, output: any, overwrite = false): vo
   }
   stream.end();
 }
+
