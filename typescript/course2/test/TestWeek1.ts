@@ -5,17 +5,24 @@ import {stringComposition} from '../../bioinformatics/Reconstructor';
 
 const baseTestInputPath = './typescript/course2/test/inputs';
 const baseTestOutputPath = './typescript/course2/test/outputs';
+let inputPath = '';
+let outputPath = '';
 
-describe('Week 1 Test', () => {
-  ['test1.txt', 'test2.txt', 'test3.txt', 'test4.txt'].forEach((fileName) => {
-    it(`should decompose strand in file ${fileName}`, () => {
-      const inputPath = `${baseTestInputPath}/kmerComposition`;
-      const outputPath = `${baseTestOutputPath}/kmerComposition`;
-      const {body, header}: IDataFile = parseDataFile(`${inputPath}/${fileName}`, {hasHeader: true});
-      const actualOutput = stringComposition(body, Number(header));
-      const expectedOutput = fs.readFileSync(`${outputPath}/${fileName}`).toString().split('\n');
+describe('Week 1 Tests', () => {
+  describe('String Composition Tests', () => {
+    before(() => {
+      inputPath =  `${baseTestInputPath}/kmerComposition`;
+      outputPath = `${baseTestOutputPath}/kmerComposition`;
+    });
 
-      assert.deepEqual(actualOutput, expectedOutput);
+    ['sample.txt', 'test1.txt', 'test2.txt', 'test3.txt', 'test4.txt'].forEach((fileName) => {
+      it(`should decompose strand in file ${fileName}`, () => {
+        const {body, header}: IDataFile = parseDataFile(`${inputPath}/${fileName}`, {hasHeader: true});
+        const actualOutput = stringComposition(body, Number(header));
+        const expectedOutput = fs.readFileSync(`${outputPath}/${fileName}`).toString().split('\n');
+
+        assert.deepEqual(actualOutput, expectedOutput);
+      });
     });
   });
 });
