@@ -1,7 +1,7 @@
 import assert from 'assert';
 import fs from 'fs';
 import {IDataFile, parseDataFile} from '../../bioinformatics/CourseHelper';
-import {stringComposition} from '../../bioinformatics/Reconstructor';
+import {genomePath, stringComposition} from '../../bioinformatics/Reconstructor';
 
 const baseTestInputPath = './typescript/course2/test/inputs';
 const baseTestOutputPath = './typescript/course2/test/outputs';
@@ -22,6 +22,23 @@ describe('Week 1 Tests', () => {
         const expectedOutput = fs.readFileSync(`${outputPath}/${fileName}`).toString().split('\n');
 
         assert.deepEqual(actualOutput, expectedOutput);
+      });
+    });
+  });
+
+  describe('Genome Path Tests', () => {
+    before(() => {
+      inputPath =  `${baseTestInputPath}/genomePath`;
+      outputPath = `${baseTestOutputPath}/genomePath`;
+    });
+
+    ['sample.txt', 'test1.txt', 'test2.txt', 'test3.txt'].forEach((fileName) => {
+      it(`should construct a strand from separate strands in file ${fileName}`, () => {
+        const {body}: IDataFile = parseDataFile(`${inputPath}/${fileName}`, {});
+        const actualOutput = genomePath(body.split(' '));
+        const expectedOutput = fs.readFileSync(`${outputPath}/${fileName}`).toString();
+
+        assert.strictEqual(actualOutput, expectedOutput);
       });
     });
   });

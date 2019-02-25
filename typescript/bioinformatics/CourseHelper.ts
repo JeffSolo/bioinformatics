@@ -18,7 +18,7 @@ export interface IDataFile {
  *
  * @returns object consisting of {body, header, footer}
  */
-export function parseDataFile(filePath: string, {joinCharacter = '', hasHeader = false, hasFooter = false}): IDataFile {
+export function parseDataFile(filePath: string, {joinCharacter = ' ', hasHeader = false, hasFooter = false}): IDataFile {
   const fileContent: string[] = fs.readFileSync(filePath).toString().split('\n');
   const header: string | undefined = hasHeader ? fileContent.shift() : undefined;
   const footer: string | undefined = hasFooter ? fileContent.pop() : undefined;

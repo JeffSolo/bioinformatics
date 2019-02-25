@@ -2,16 +2,16 @@
  * Module for reconstructing string problems.
  */
 
+// TODO: possibly find a better place to put all of these, in a class somewhere?
 /**
  * Break down string into all of its possible kmers
  *
  * @param strand - sequence to decompose
- * @param k - lenght of kmer
+ * @param k - length of kmer
  *
  * @return string array of all kmers composing the strand
  *
  */
-// TODO find a better place to put this - don't want it in DNA, at least for now.
 export function stringComposition(strand: string, k: number): string[] {
     const kmers: string[] = [];
 
@@ -22,3 +22,26 @@ export function stringComposition(strand: string, k: number): string[] {
 
     return kmers;
  }
+
+/**
+ * Combine kmers into single string, when given in order
+ *
+ * @param strands - strands to compile
+ *
+ * @return compiled strand
+ *
+ */
+export function genomePath(strands: string[]): string {
+  if (strands.length === 0) { throw new Error('"strands" can not be empty'); }
+  // @ts-ignore: won't be undefined due to previous check
+  let out: string = strands.shift();
+
+  strands.forEach((strand) => {
+    const overlap = strand.slice(0, -1);
+    if (out.endsWith(overlap)) {
+      out += strand.slice(-1);
+    }
+  });
+
+  return out;
+}
