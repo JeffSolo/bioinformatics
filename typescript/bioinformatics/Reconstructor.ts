@@ -31,7 +31,7 @@ export function stringComposition(strand: string, k: number): string[] {
  * @return compiled strand
  *
  */
-export function genomePath(strands: string[]): string {
+export function genomePath(strands: string[]): string | never {
   if (strands.length === 0) { throw new Error('"strands" can not be empty'); }
   // @ts-ignore: won't be undefined due to previous check
   let out: string = strands.shift();
