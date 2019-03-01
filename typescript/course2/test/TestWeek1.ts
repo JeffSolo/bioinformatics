@@ -21,7 +21,7 @@ describe('Week 1 Tests', () => {
         const actualOutput = stringComposition(body, Number(header));
         const expectedOutput = fs.readFileSync(`${outputPath}/${fileName}`).toString().split('\n');
 
-        assert.deepEqual(actualOutput, expectedOutput);
+        assert.deepStrictEqual(actualOutput, expectedOutput);
       });
     });
   });
@@ -34,11 +34,11 @@ describe('Week 1 Tests', () => {
 
     ['sample.txt', 'test1.txt', 'test2.txt', 'test3.txt'].forEach((fileName) => {
       it(`should construct a strand from separate strands in file ${fileName}`, () => {
-        const {body}: IDataFile = parseDataFile(`${inputPath}/${fileName}`, {});
+        const {body}: IDataFile = parseDataFile(`${inputPath}/${fileName}`, {joinCharacter: ' '});
         const actualOutput = genomePath(body.split(' '));
         const expectedOutput = fs.readFileSync(`${outputPath}/${fileName}`).toString();
 
-        assert.strictEqual(actualOutput, expectedOutput);
+        assert.deepStrictEqual(actualOutput, expectedOutput);
       });
     });
   });
